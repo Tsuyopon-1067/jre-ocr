@@ -1,6 +1,7 @@
 # システムの利用を宣言する
 import os
 import sys
+import time
 
 # PyOCRを読み込む
 from PIL import Image
@@ -53,6 +54,7 @@ def runmovie(tool, video_path):
         if ret:
             frame = frame[clpnt.y1:clpnt.y2, clpnt.x1:clpnt.x2]
             readtext(tool, cv_to_pil(frame))
+            print_progress_bar(i, last_frame)
         else:
             return
 
@@ -73,8 +75,15 @@ def readtext(tool, img):
     result = tool.image_to_string(img,lang="eng",builder=builder)
 
     #結果を出力
-    print(result)
+    #print(result)
 
+def print_progress_bar(now, max):
+    rate = 50.0 / max
+    done = int(rate * now)
+    bar_end = int(rate * max)
+    bar = "="*done + (">" if done < bar_end-1 else "=") + " "*(bar_end-done-1)
+    print("\r[{}] {}/{}".format(bar, now+1, max), end="")
 
 if __name__ == "__main__":
     main()
+    time.sleep(0.1)
