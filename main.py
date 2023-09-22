@@ -11,8 +11,6 @@ import cv2
 
 def main():
     tool = initialize()
-    #画像の読み込み
-    img = Image.open("2.png")
     runmovie(tool, "movie.mp4")
 
 
