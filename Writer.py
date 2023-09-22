@@ -10,8 +10,8 @@ class FrameDataWriter:
     limit = -1
 
     def __init__(self):
-        sf = open(self.SPEED_FILE, 'w')
-        lf = open(self.LIMIT_FILE, 'w')
+        self.sf = open(self.SPEED_FILE, 'w')
+        self.lf = open(self.LIMIT_FILE, 'w')
 
     def write(self, arg):
         if self.speed == -1:
@@ -21,9 +21,9 @@ class FrameDataWriter:
         if self.distance == -1:
             self.distance = arg.distance
 
-        if abs(self.speed - arg.speed) < 1 and arg.limit >= 10 and abs(self.distance - arg.distance) < 10:
+        if (abs(self.speed - arg.speed) < 1) and (arg.limit >= 10) and (abs(self.distance - arg.distance) < 10):
             self.speed = arg.speed
             self.distance = arg.distance
             self.limit = arg.limit
-            sf.write(arg.speed)
-            lf.write(arg.limit)
+            self.sf.write("{},{}\n".format(self.distance, self.speed))
+            self.lf.write("{},{}\n".format(self.distance, self.limit))
