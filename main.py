@@ -10,8 +10,11 @@ import pyocr
 # open cv
 import cv2
 
-# ｙデータ構造用クラス
+# データ構造用クラス
 from FrameData import FrameData
+
+# データ書き込み用クラス
+from Writer import FrameDataWriter
 
 class ClipingPoint:
     def __init__(self, x, y, width, height):
@@ -26,7 +29,8 @@ clpnt = ClipingPoint(1750, 146, 134, 147)
 
 def main():
     tool = initialize()
-    runmovie(tool, MOVIE_FILE)
+    fdw = FrameDataWriter()
+    runmovie(tool, MOVIE_FILE, fdw)
 
 
 def initialize():
@@ -44,7 +48,7 @@ def initialize():
         tool = tools[0]
     return tool
 
-def runmovie(tool, video_path):
+def runmovie(tool, video_path, fdw):
     cap = cv2.VideoCapture(video_path)
     last_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -56,7 +60,8 @@ def runmovie(tool, video_path):
         ret, frame = cap.read()
         if ret:
             frame = frame[clpnt.y1:clpnt.y2, clpnt.x1:clpnt.x2]
-            readtext(tool, cv_to_pil(frame))
+            fd = readtext(tool, cv_to_pil(frame))
+            fdw.write(fd)
             print_progress_bar(i, last_frame)
         else:
             return
@@ -80,6 +85,7 @@ def readtext(tool, img):
     #結果を出力
     fd = FrameData(result)
     #print(fd.to_string())
+    return fd
 
 def print_progress_bar(now, max):
     rate = 50.0 / max
