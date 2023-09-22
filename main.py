@@ -10,6 +10,9 @@ import pyocr
 # open cv
 import cv2
 
+# ｙデータ構造用クラス
+from FrameData import FrameData
+
 class ClipingPoint:
     def __init__(self, x, y, width, height):
         self.x1 = x
@@ -75,7 +78,8 @@ def readtext(tool, img):
     result = tool.image_to_string(img,lang="eng",builder=builder)
 
     #結果を出力
-    #print(result)
+    fd = FrameData(result)
+    #print(fd.to_string())
 
 def print_progress_bar(now, max):
     rate = 50.0 / max
