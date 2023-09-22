@@ -1,5 +1,3 @@
-import re
-
 class FrameDataWriter:
 
     SPEED_FILE = 'speed.csv'
