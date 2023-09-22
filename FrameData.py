@@ -1,4 +1,5 @@
 import re
+import math
 
 class FrameData:
     speed = 0
@@ -22,7 +23,8 @@ class FrameData:
             match_limit = re.search(r"(\d+(\.\d+)?)", lines[1])
             if match_limit:
                 self.limit = match_limit.group(1)
-                self.limit = int(self.limit)
+                self.limit = float(self.limit)
+                self.limit = math.floor(self.limit)
 
     def to_string(self):
         return "{}km/h, {}m, [{}]".format(self.speed, self.distance, self.limit)
