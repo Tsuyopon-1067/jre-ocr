@@ -9,9 +9,20 @@ import pyocr
 # open cv
 import cv2
 
+class ClipingPoint:
+    def __init__(self, x, y, width, height):
+        self.x1 = x
+        self.x2 = x + width
+        self.y1 = y
+        self.y2 = y + height
+
+RESOLUTION = 12
+MOVIE_FILE = "movie.mp4"
+clpnt = ClipingPoint(1750, 146, 134, 147)
+
 def main():
     tool = initialize()
-    runmovie(tool, "movie.mp4")
+    runmovie(tool, MOVIE_FILE)
 
 
 def initialize():
@@ -36,11 +47,11 @@ def runmovie(tool, video_path):
     if not cap.isOpened():
         return
 
-    for i in range(0, last_frame, 12):
+    for i in range(0, last_frame, RESOLUTION):
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         ret, frame = cap.read()
         if ret:
-            frame = frame[146:293, 1750:1884]
+            frame = frame[clpnt.y1:clpnt.y2, clpnt.x1:clpnt.x2]
             readtext(tool, cv_to_pil(frame))
         else:
             return
