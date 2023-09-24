@@ -1,5 +1,5 @@
 import csv
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 def read_csv(filename: str) -> List[Tuple[float, float]]:
     data_list: List[Tuple[float, float]] = []
@@ -77,11 +77,18 @@ def create_dp(arg: List[Tuple[float, float]]) -> List[Tuple[int, float]]:
 
     return res
 
+def write_csv(arg: Union[List[Tuple[int, int]], List[Tuple[int, float]]], file_name: str):
+    with open(file_name, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(arg)
+
 def main():
     speed_list: List[Tuple[float, float]] = read_csv('speed.csv')
     limit_list: List[Tuple[float, float]] = read_csv('limit.csv')
     speed_list_processed: List[Tuple[int, float]] = process_speed(speed_list)
     limit_list_processed: List[Tuple[int, int]] = process_limit(limit_list)
+    write_csv(speed_list_processed, 'speed2.csv')
+    write_csv(limit_list_processed, 'limit2.csv')
 
 if __name__ == "__main__":
     main()
