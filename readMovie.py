@@ -1,7 +1,6 @@
 # システムの利用を宣言する
 import os
 import sys
-import time
 
 # PyOCRを読み込む
 from PIL import Image
@@ -13,10 +12,13 @@ import cv2
 # データ構造用クラス
 from FrameData import FrameData
 
-# データ書き込み用クラス
 from Writer import FrameDataWriter
 
+from typing import List
+from multiprocessing import Pool
 
+
+# データ書き込み用クラス
 class ClipingPoint:
     def __init__(self, x, y, width, height):
         self.x1 = x
@@ -24,11 +26,23 @@ class ClipingPoint:
         self.y1 = y
         self.y2 = y + height
 
+# 引数をまとめるために使う構造体的クラス
+
+
+class MovieArg:
+    def __init__(self, process_num, video_path, RESOLUTION, clpnt, start, end):
+        self.process_num = process_num
+        self.video_path = video_path
+        self.RESOLUTION = RESOLUTION
+        self.clpnt = clpnt
+        self.start = start
+        self.end = end
+
 
 def read_movie(MOVIE_FILE: str, RESOLUTION: int, clpnt: ClipingPoint):
     tool = initialize()
-    fdw = FrameDataWriter()
-    runmovie(tool, MOVIE_FILE, fdw, RESOLUTION, clpnt)
+
+    runmovie(MOVIE_FILE, RESOLUTION, clpnt)
 
 
 def initialize():
@@ -47,23 +61,65 @@ def initialize():
     return tool
 
 
-def runmovie(tool, video_path, fdw, RESOLUTION, clpnt):
+def runmovie(video_path, RESOLUTION, clpnt) -> None:
     cap = cv2.VideoCapture(video_path)
-    last_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    split_size: int = 1
+    if os.cpu_count != None:
+        split_size = os.cpu_count()  # type: ignore
+
+    list_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)/RESOLUTION)
+    split_len: int = int(list_len/split_size)
+    count_remain: int = list_len - split_len*split_size
+    frame_lst: List[int] = []
+    frame_lst.append(0)
+    idx_pointer: int = 0
+
+    for i in range(split_size):
+        idx_pointer += split_len
+        if count_remain > 0:
+            idx_pointer += 1
+            count_remain -= 1
+        frame_lst.append(idx_pointer*RESOLUTION)
+
+    arg_lst: List[MovieArg] = []
+    for i in range(split_size):
+        arg_lst.append(MovieArg(i, video_path, RESOLUTION,
+                       clpnt, frame_lst[i], frame_lst[i+1]))
+
+    p = Pool(split_size)
+    ret = p.map(runmovie_sub, arg_lst)
+
+    fdw = FrameDataWriter()
+    for v in ret:
+        for w in v:
+            fdw.write(w)
+
+
+def runmovie_sub(arg: MovieArg) -> List[FrameData]:
+    video_path = arg.video_path
+    RESOLUTION = arg.RESOLUTION
+    clpnt = arg.clpnt
+    start = arg.start
+    end = arg.end
+    tool = initialize()
+
+    res: List[FrameData] = []
+    cap = cv2.VideoCapture(video_path)
 
     if not cap.isOpened():
-        return
+        return res
 
-    for i in range(0, last_frame, RESOLUTION):
+    for i in range(start, end, RESOLUTION):
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         ret, frame = cap.read()
         if ret:
             frame = frame[clpnt.y1:clpnt.y2, clpnt.x1:clpnt.x2]
             fd = readtext(tool, cv_to_pil(frame))
-            fdw.write(fd)
-            print_progress_bar(i, last_frame)
+            res.append(fd)
         else:
-            return
+            return res
+    return res
 
 
 def cv_to_pil(image):
