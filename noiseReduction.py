@@ -1,6 +1,7 @@
 import csv
 from typing import List, Tuple, Union
 
+
 def read_csv(filename: str) -> List[Tuple[float, float]]:
     data_list: List[Tuple[float, float]] = []
 
@@ -29,16 +30,18 @@ def process_speed(arg: List[Tuple[float, float]]) -> List[Tuple[int, float]]:
             speed_prv = elem[1]
     return res
 
+
 def process_limit(arg: List[Tuple[float, float]]) -> List[Tuple[int, int]]:
     ret: List[Tuple[int, float]] = create_dp(arg)
 
     # ここから制限の処理
     res: List[Tuple[int, int]] = []
     for elem in ret:
-        if elem[1] % 5 == 0 and 20 <= elem[1] <= 130:
+        if elem[1] % 5 == 0 and 25 <= elem[1] <= 130:
             tmp = elem[0], int(elem[1])
             res.append(tmp)
     return res
+
 
 def create_dp(arg: List[Tuple[float, float]]) -> List[Tuple[int, float]]:
     # 距離の処理をしてから速度の処理をする
@@ -77,18 +80,17 @@ def create_dp(arg: List[Tuple[float, float]]) -> List[Tuple[int, float]]:
 
     return res
 
+
 def write_csv(arg: Union[List[Tuple[int, int]], List[Tuple[int, float]]], file_name: str):
     with open(file_name, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(arg)
 
-def main():
+
+def noise_reduction():
     speed_list: List[Tuple[float, float]] = read_csv('speed.csv')
     limit_list: List[Tuple[float, float]] = read_csv('limit.csv')
     speed_list_processed: List[Tuple[int, float]] = process_speed(speed_list)
     limit_list_processed: List[Tuple[int, int]] = process_limit(limit_list)
     write_csv(speed_list_processed, 'speed2.csv')
     write_csv(limit_list_processed, 'limit2.csv')
-
-if __name__ == "__main__":
-    main()
